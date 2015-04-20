@@ -61,7 +61,7 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     var itemsQueueArray: NSMutableArray = NSMutableArray()
     var alignment: Alignment = .Center
     var distanceBetweenViews: CGFloat = 20
-    
+    var currentIndex = 0
     
     
     // MARK: - Private Properties
@@ -93,7 +93,24 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
             var view: UIView = viewsArray[i]
             view.tag = i
             
-            view.frame.origin.x = (CGFloat(i)*self.distanceBetweenViews) + view.frame.size.width*CGFloat(i+1) + self.distanceBetweenViews
+            switch self.alignment {
+                
+            case .Right:
+                view.frame.origin.x = (CGFloat(i)*self.distanceBetweenViews) + view.frame.size.width*CGFloat(i) + self.distanceBetweenViews
+                break
+                
+            case .Center:
+                view.frame.origin.x = (scrollView.frame.size.width/2) + (view.frame.size.width/2)
+                view.frame.origin.x = self.getCenterPoint(view).x + (CGFloat(i)*self.distanceBetweenViews) + view.frame.size.width*CGFloat(i)
+                break
+                
+            case .Left:
+                view.frame.origin.x = self.scrollView.frame.size.width + view.frame.size.width + self.distanceBetweenViews
+                view.frame.origin.x = self.getLeftCenter(view).x + (CGFloat(i)*self.distanceBetweenViews) + view.frame.size.width*CGFloat(i)
+                break
+                
+            }
+
             
             self.itemsQueueArray.addObject(view)
             
@@ -175,17 +192,25 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
         
         var point: CGPoint = tapGesture.locationInView(self.scrollView)
         
+        self.delegate?.pageView(self, didSelectItemAtIndex: self.findCurrentIndex(point))
+
+        
+    }
+    
+    private func findCurrentIndex (point: CGPoint) -> Int {
+        
+        var index = 0
+        
         for var i = 0; i < self.itemsQueueArray.count; i++ {
             
             if CGRectIntersectsRect(CGRectMake(point.x, point.y, 1, 1), self.itemsQueueArray.objectAtIndex(i).frame) {
-                println("index: \(i)")
-                self.delegate?.pageView(self, didSelectItemAtIndex: i)
-                return
+                index = i
+                println("index: \(index)")
             }
             
         }
         
-        
+        return index
     }
     
     
@@ -265,10 +290,16 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
         
     }
     
+    private func getCenterPoint(view: UIView) -> CGPoint {
+        
+        var centerPoint: CGPoint = CGPointMake(view.frame.origin.x - (scrollView.frame.size.width/2) + (view.frame.size.width/2), self.scrollView.contentOffset.y)
+        return centerPoint
+        
+    }
+    
     private func scrollToCenterViewContentOffSetWithView(view: UIView) {
 
-        var centerPoint: CGPoint = CGPointMake(view.frame.origin.x - (scrollView.frame.size.width/2) + (view.frame.size.width/2), self.scrollView.contentOffset.y)
-        
+        var centerPoint = self.getCenterPoint(view)
         self.updateScrollViewContentOffSet(centerPoint)
         
     }
@@ -299,15 +330,23 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
         
     }
     
-    private func scrollToLeftViewContentOffSetWithView(view: UIView) {
+    private func getLeftCenter(view: UIView) -> CGPoint {
         
         var leftPoint: CGPoint = CGPointMake(view.frame.origin.x - self.scrollView.frame.size.width + view.frame.size.width + self.distanceBetweenViews, self.scrollView.contentOffset.y)
+        return leftPoint
         
+    }
+    
+    private func scrollToLeftViewContentOffSetWithView(view: UIView) {
+        
+        var leftPoint = self.getLeftCenter(view)
         self.updateScrollViewContentOffSet(leftPoint)
         
     }
     
     private func updateScrollViewContentOffSet(point: CGPoint) {
+        
+        self.findCurrentIndex(point)
         
         UIView.animateWithDuration(0.5, animations: { () -> Void in
             self.scrollView.setContentOffset(point, animated: false)
