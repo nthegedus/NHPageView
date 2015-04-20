@@ -55,13 +55,12 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     var vertical: Bool = false
     var decelerationRate: CGFloat?
     var scrollOffset: CGFloat?
-    var currentIndexItem: Int?
+    var currentIndexItem: Int = 0
     var numberOfItems: Int?
     var itemSize: CGSize?
     var itemsQueueArray: NSMutableArray = NSMutableArray()
     var alignment: Alignment = .Center
     var distanceBetweenViews: CGFloat = 20
-    var currentIndex = 0
     
     
     // MARK: - Private Properties
@@ -192,26 +191,25 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
         
         var point: CGPoint = tapGesture.locationInView(self.scrollView)
         
-        self.delegate?.pageView(self, didSelectItemAtIndex: self.findCurrentIndex(point))
+        self.delegate?.pageView(self, didSelectItemAtIndex: self.currentIndexItem)
 
         
     }
     
-    private func findCurrentIndex (point: CGPoint) -> Int {
-        
-        var index = 0
-        
-        for var i = 0; i < self.itemsQueueArray.count; i++ {
-            
-            if CGRectIntersectsRect(CGRectMake(point.x, point.y, 1, 1), self.itemsQueueArray.objectAtIndex(i).frame) {
-                index = i
-                println("index: \(index)")
-            }
-            
-        }
-        
-        return index
-    }
+//    private func findCurrentIndex (point: CGPoint) -> Int {
+//        
+//        var index = 0
+//        
+//        for var i = 0; i < self.itemsQueueArray.count; i++ {
+//            
+//            if CGRectIntersectsRect(CGRectMake(point.x, point.y, 1, 1), self.itemsQueueArray.objectAtIndex(i).frame) {
+//                index = i
+//            }
+//            
+//        }
+//        
+//        return index
+//    }
     
     
     // MARK: - ScrollView Position Methods
@@ -243,8 +241,6 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
             
             if CGRectIntersectsRect(view.frame, scrollFrame) {
                 
-                println("view: \(view)")
-                
                 self.scrollToRightViewContentOffSetWithView(view as UIView)
                 viewSelected = view as UIView
                 return
@@ -261,6 +257,7 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     private func scrollToRightViewContentOffSetWithView(view: UIView) {
         
         var rightPoint: CGPoint = CGPointMake(view.frame.origin.x - self.distanceBetweenViews, self.scrollView.contentOffset.y)
+        self.currentIndexItem = self.itemsQueueArray.indexOfObject(view)
         self.updateScrollViewContentOffSet(rightPoint)
 
     }
@@ -300,6 +297,7 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     private func scrollToCenterViewContentOffSetWithView(view: UIView) {
 
         var centerPoint = self.getCenterPoint(view)
+        self.currentIndexItem = self.itemsQueueArray.indexOfObject(view)
         self.updateScrollViewContentOffSet(centerPoint)
         
     }
@@ -340,17 +338,17 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     private func scrollToLeftViewContentOffSetWithView(view: UIView) {
         
         var leftPoint = self.getLeftCenter(view)
+        self.currentIndexItem = self.itemsQueueArray.indexOfObject(view)
         self.updateScrollViewContentOffSet(leftPoint)
         
     }
     
     private func updateScrollViewContentOffSet(point: CGPoint) {
-        
-        self.findCurrentIndex(point)
-        
+
         UIView.animateWithDuration(0.5, animations: { () -> Void in
             self.scrollView.setContentOffset(point, animated: false)
-        })
+        }) { (Bool) -> Void in
+        }
         
     }
     
@@ -365,24 +363,24 @@ class NHPageView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     }
     
     func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        self.delegate?.pageViewDidEndDragging(self, willDecelerate: true)
-        
-        self.delegate?.pageViewWillBeginDecelarating(self)
-        switch self.alignment {
-            
-        case .Right:
-            self.scrollToRightView()
-            break
-            
-        case .Center:
-            self.scrollToCenterView()
-            break
-            
-        case .Left:
-            self.scrollToLeftView()
-            break
-            
-        }
+//        self.delegate?.pageViewDidEndDragging(self, willDecelerate: true)
+//        
+//        self.delegate?.pageViewWillBeginDecelarating(self)
+//        switch self.alignment {
+//            
+//        case .Right:
+//            self.scrollToRightView()
+//            break
+//            
+//        case .Center:
+//            self.scrollToCenterView()
+//            break
+//            
+//        case .Left:
+//            self.scrollToLeftView()
+//            break
+//            
+//        }
 
     }
     
